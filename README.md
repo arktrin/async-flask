@@ -1,1 +1,1 @@
-# Test of asynchronous flask communication with web page.
+Test of asynchronous flask communication with web page.
