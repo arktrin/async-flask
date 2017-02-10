@@ -14,33 +14,23 @@
             height:150px;
             overflow:auto;  
             margin-top:20px;
-            width:15%;
+            width:12%;
         }
         #csv-table-wrapper table {
             width:90%;
             border-collapse: collapse;
         }
-    
         td, th {
             padding: 3px; 
             border: 1px solid #000; 
         }
-    
         th {
             color: #333; 
         }
-        #thAlarmTable{
-            font-size: 16pt;
-            background: #ff5959;
+        #th-csv-table{
+            font-size: 12pt;
+            background: #f0f3f4;
         }
-        #thEventTable{
-            font-size: 16pt;
-            background: #ffe34c;
-        }
-        #row2AlarmTable{
-            background: #ffacac;
-        }
-    
         #csv-row:hover {
             background: #d6e3fc;
         }
@@ -197,7 +187,7 @@
         <div id="csv-table-scroll">
             <table id="csvTable">
                 <tbody id="csvTableTbody" class="table table-hover table-bordered">
-                    <tr><th>Load file</th></tr>
+                    <tr><th id="th-csv-table">Load file</th></tr>
                     {% for n in list_of_files %}
                     <tr><td id="csv-row">{{n}}</td></tr>
                     {% endfor %}
