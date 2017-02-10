@@ -44,7 +44,7 @@ def test_connect():
     global thread
     if thread is None:
         thread = socketio.start_background_task(target=background_thread)
-    emit('my_response', {'data': 'Connected!!!', 'count': 0})
+    emit('my_response', {'data': 'Connected!', 'count': 0})
 
 @socketio.on('disconnect', namespace='/test')
 def test_disconnect():
