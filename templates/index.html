@@ -9,6 +9,44 @@
 	<script type="text/javascript" src="https://code.highcharts.com/stock/modules/exporting.js"></script>
 	<script type="text/javascript" src="http://highcharts.github.io/export-csv/export-csv.js"></script>
 
+    <style>
+        #csv-table-scroll {
+            height:150px;
+            overflow:auto;  
+            margin-top:20px;
+            width:15%;
+        }
+        #csv-table-wrapper table {
+            width:90%;
+            border-collapse: collapse;
+        }
+    
+        td, th {
+            padding: 3px; 
+            border: 1px solid #000; 
+        }
+    
+        th {
+            color: #333; 
+        }
+        #thAlarmTable{
+            font-size: 16pt;
+            background: #ff5959;
+        }
+        #thEventTable{
+            font-size: 16pt;
+            background: #ffe34c;
+        }
+        #row2AlarmTable{
+            background: #ffacac;
+        }
+    
+        #csv-row:hover {
+            background: #d6e3fc;
+        }
+    </style>
+
+
     <script type="text/javascript" charset="utf-8">
         $(document).ready(function() {
 
@@ -46,7 +84,6 @@
             });
             
             var chart_data = [];
-            // var d = [];
             var options = {
                 chart: {
                     renderTo: 'container',
@@ -125,12 +162,10 @@
 
             // Highcharts.setOptions({ global: { useUTC: false } });
 
-			$('#add_chart').click(function() {
+			$('tr').click(function() {
 				var chart = $('#container').highcharts(), series = chart.series[0];
         		chart.series[0].setData([]);
-                var file_name = $("input:text").val(); 
-                console.log(file_name);
-				var loading = $.get("/static/"+file_name, function(data) {
+				var loading = $.get('/static/'+$(this).find('td').text(), function(data) {
                 	var lines = data.split('\n').slice(0,-1);
                 	// console.log(lines.slice(0,-1));
                 	$.each(lines, function(lineNo, line) {
@@ -149,21 +184,28 @@
 </head>
 <body>
 
-    <h1>Flask-SocketIO Test</h1>
+    <!-- <h1>Flask-SocketIO Test</h1> -->
     <!-- <p>Async mode is: <b>{{ async_mode }}</b></p> -->
     <p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
 
 	<div id="container" style="height: 600px; width: 1200px"></div>
 	<br>
-    <input type="text" name="cvs_file" id="csv_file" placeholder="cvs_file">
-	<input type="button" id="add_chart" value="add chart"/>
-	
-	<table class="table table-hover">
-		{% for n in list_of_files %}
-		<tr><th>{{n}}</th></tr>
-		{% endfor %}
-	</table>
+    <!--<input type="text" name="cvs_file" id="csv_file" placeholder="cvs_file">
+	<input type="button" id="add_chart" value="add chart"/>-->
 
+    <div id="csv-table-wrapper">
+        <div id="csv-table-scroll">
+            <table id="csvTable">
+                <tbody id="csvTableTbody" class="table table-hover table-bordered">
+                    <tr><th>Load file</th></tr>
+                    {% for n in list_of_files %}
+                    <tr><td id="csv-row">{{n}}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>  
+	
     <h2>Send:</h2>
 
     <form id="emit" method="POST" action='#'>
