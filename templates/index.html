@@ -10,13 +10,13 @@
 	<script type="text/javascript" src="http://highcharts.github.io/export-csv/export-csv.js"></script>
 
     <style>
-        #csv-table-scroll {
+        #csv-table-scroll, #schedule-table-scroll {
             height:150px;
             overflow:auto;  
             margin-top:20px;
             width:12%;
         }
-        #csv-table-wrapper table {
+        #csv-table-wrapper table, #schedule-table-wrapper table  {
             width:90%;
             border-collapse: collapse;
         }
@@ -27,11 +27,11 @@
         th {
             color: #333; 
         }
-        #th-csv-table{
+        #th-csv-table, #th-schedule-table{
             font-size: 12pt;
             background: #f0f3f4;
         }
-        #csv-row:hover {
+        #csv-row:hover, #schedule-row:hover {
             background: #d6e3fc;
         }
     </style>
@@ -185,8 +185,8 @@
 
     <div id="csv-table-wrapper">
         <div id="csv-table-scroll">
-            <table id="csvTable">
-                <tbody id="csvTableTbody" class="table table-hover table-bordered">
+            <table id="csv-table">
+                <tbody id="csv-table-tbody">
                     <tr><th id="th-csv-table">Load file</th></tr>
                     {% for n in list_of_files %}
                     <tr><td id="csv-row">{{n}}</td></tr>
@@ -194,8 +194,21 @@
                 </tbody>
             </table>
         </div>
-    </div>  
-	
+    </div> 
+
+    <div id="schedule-table-wrapper">
+        <div id="schedule-table-scroll">
+            <table id="schedule-table">
+                <tbody id="schedule-table-tbody">
+                    <tr><th id="th-schedule-table">Schedule</th></tr>
+                    {% for n in list_of_files %}
+                    <tr><td id="schedule-row">{{n}}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+ 	
     <h2>Send:</h2>
 
     <form id="emit" method="POST" action='#'>
