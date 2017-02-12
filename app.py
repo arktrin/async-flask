@@ -12,10 +12,12 @@ async_mode = None
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, async_mode=async_mode)
-
 thread = None
 
-list_of_files = os.listdir('static')
+list_of_csv = os.listdir('static')
+list_of_csv.remove('schedule.txt')
+with open('static/schedule.txt', 'r') as f:
+	schedule_list = f.read().split('\n')[:-1]
 
 def background_thread():
 	count = 0
@@ -28,7 +30,7 @@ def background_thread():
 
 @app.route('/')
 def index():
-    return render_template('index.html', async_mode=socketio.async_mode, list_of_files=list_of_files)
+    return render_template('index.html', async_mode=socketio.async_mode, list_of_csv=list_of_csv, schedule_list=schedule_list)
 
 @socketio.on('my_event', namespace='/test')
 def test_message(message):

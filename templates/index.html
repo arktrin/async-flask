@@ -16,6 +16,12 @@
             margin-top:20px;
             width:12%;
         }
+		#schedule-table-scroll {
+			height:150px;
+            overflow:auto;
+            margin-top:20px;
+            width:20%;
+		}
         #csv-table-wrapper table, #schedule-table-wrapper table  {
             width:90%;
             border-collapse: collapse;
@@ -188,7 +194,7 @@
             <table id="csv-table">
                 <tbody id="csv-table-tbody">
                     <tr><th id="th-csv-table">Load file</th></tr>
-                    {% for n in list_of_files %}
+                    {% for n in list_of_csv %}
                     <tr><td id="csv-row">{{n}}</td></tr>
                     {% endfor %}
                 </tbody>
@@ -201,7 +207,7 @@
             <table id="schedule-table">
                 <tbody id="schedule-table-tbody">
                     <tr><th id="th-schedule-table">Schedule</th></tr>
-                    {% for n in list_of_files %}
+                    {% for n in schedule_list %}
                     <tr><td id="schedule-row">{{n}}</td></tr>
                     {% endfor %}
                 </tbody>
