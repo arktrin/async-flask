@@ -11,13 +11,13 @@
 
     <style>
         #csv-table-scroll, #schedule-table-scroll {
-            height:150px;
+            height:250px;
             overflow:auto;  
             margin-top:20px;
             width:12%;
         }
 		#schedule-table-scroll {
-			height:150px;
+			height:250px;
             overflow:auto;
             margin-top:20px;
             width:20%;
@@ -31,13 +31,14 @@
             border: 1px solid #000; 
         }
         th {
-            color: #333; 
+            color: #333;
+			text-align: center; 
         }
         #th-csv-table, #th-schedule-table{
             font-size: 12pt;
             background: #f0f3f4;
         }
-        #csv-row:hover, #schedule-row:hover {
+        .csv-row:hover, .schedule-row:hover {
             background: #d6e3fc;
         }
     </style>
@@ -93,7 +94,7 @@
                                 if ($.isNumeric(msg.data)) {
                                     series.addPoint([x, msg.data], true, false);
                                 }
-                                $('#log').append('<br>'+$('<div/>').text('Received #'+msg.count+': '+msg.data).html());
+                                // $('#log').append('<br>'+$('<div/>').text('Received #'+msg.count+': '+msg.data).html());
                             });
                         }
                     }
@@ -158,7 +159,7 @@
 
             // Highcharts.setOptions({ global: { useUTC: false } });
 
-			$('tr').click(function() {
+			$('.csv-row').click(function() {
 				var chart = $('#container').highcharts(), series = chart.series[0];
         		chart.series[0].setData([]);
 				var loading = $.get('/static/'+$(this).find('td').text(), function(data) {
@@ -180,13 +181,12 @@
 </head>
 <body>
 
-    <!-- <h1>Flask-SocketIO Test</h1> -->
-    <p>Async mode is: <b>{{ async_mode }}</b></p>
+    <!-- <p>Async mode is: <b>{{ async_mode }}</b></p> -->
     <p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
 
 	<div id="container" style="height: 600px; width: 1200px"></div>
 	<br>
-    <!--<input type="text" name="cvs_file" id="csv_file" placeholder="cvs_file">
+    <!--<input type="text" name="csv_file" id="csv_file" placeholder="csv_file">
 	<input type="button" id="add_chart" value="add chart"/>-->
 
     <div id="csv-table-wrapper">
@@ -195,7 +195,7 @@
                 <tbody id="csv-table-tbody">
                     <tr><th id="th-csv-table">Load file</th></tr>
                     {% for n in list_of_csv %}
-                    <tr><td id="csv-row">{{n}}</td></tr>
+                    <tr class="csv-row"><td>{{n}}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -206,16 +206,23 @@
         <div id="schedule-table-scroll">
             <table id="schedule-table">
                 <tbody id="schedule-table-tbody">
-                    <tr><th id="th-schedule-table">Schedule</th></tr>
+                    <tr><th id="th-schedule-table" colspan="2">Schedule</th></tr>
+					<tr>
+						<td id="th-schedule-table" align="center">Start</td>
+					    <td id="th-schedule-table" align="center">End</td>
+					</tr>
                     {% for n in schedule_list %}
-                    <tr><td id="schedule-row">{{n}}</td></tr>
+                    <tr class="schedule-row">
+						<td>{{n[0]}}</td>
+						<td>{{n[1]}}</td>
+					</tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
  	
-    <h2>Send:</h2>
+    <!--<h2>Send:</h2>
 
     <form id="emit" method="POST" action='#'>
         <input type="text" name="emit_data" id="emit_data" placeholder="Message">
@@ -224,7 +231,7 @@
     
 	<h2>Received:</h2>
     <div id="log"></div>
-
+	-->
 
 </body>
 </html>

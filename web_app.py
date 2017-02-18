@@ -17,8 +17,11 @@ thread = None
 
 list_of_csv = os.listdir('static')
 list_of_csv.remove('schedule.txt')
+schedule_list = []
 with open('static/schedule.txt', 'r') as f:
-	schedule_list = f.read().split('\n')[:-1]
+	lines = f.read().split('\n')[:-1]
+	for line in lines:
+		schedule_list.append(line.split(','))
 
 val = Value('f', 0)
 val.value = 0
