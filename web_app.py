@@ -2,7 +2,8 @@
 
 from flask import Flask, render_template, session, request
 from flask_socketio import SocketIO, emit
-import random, os
+from multiprocessing import Process, Value
+import random, os, timeit
 
 # Set this variable to "threading", "eventlet" or "gevent" to test the
 # different async modes, or leave it set to None for the application to choose
@@ -19,13 +20,27 @@ list_of_csv.remove('schedule.txt')
 with open('static/schedule.txt', 'r') as f:
 	schedule_list = f.read().split('\n')[:-1]
 
+val = Value('f', 0)
+val.value = 0
+
+def data_logger(val):
+    while True:
+		# tic = timeit.default_timer()
+		val.value = random.random()
+        # print val.value
+		socketio.sleep(1)
+		# print timeit.default_timer() - tic
+
+
 def background_thread():
+	global val
 	count = 0
 	while True:
-		socketio.sleep(2)
+		socketio.sleep(1)
 		count += 1
+		# print val.value, '+'
 		socketio.emit('my_response',
-                      {'data': 100*random.random(), 'count': count},
+                      {'data': 100*val.value, 'count': count},
                       namespace='/test')
 
 @app.route('/')
@@ -54,5 +69,8 @@ def test_disconnect():
     print('Client disconnected', request.sid)
 
 if __name__ == '__main__':
-    socketio.run(app, host="localhost", #  "192.168.199.14"
+	process0 = Process( target=data_logger, args=(val,) )
+	process0.start()
+	# process0.join()
+	socketio.run(app, host="localhost", #  "192.168.199.14"
 					  port=80, debug=True)
