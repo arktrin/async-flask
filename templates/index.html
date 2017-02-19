@@ -28,11 +28,11 @@
         }
         td, th {
             padding: 3px; 
-            border: 1px solid #000; 
+            border: 1px solid #000;
+			text-align: center; 
         }
         th {
             color: #333;
-			text-align: center; 
         }
         #th-csv-table, #th-schedule-table{
             font-size: 12pt;
@@ -41,6 +41,10 @@
         .csv-row:hover, .schedule-row:hover {
             background: #d6e3fc;
         }
+		.csv-row:active, .schedule-row:active {
+            background: #c094c4;
+        }
+
     </style>
 
 
@@ -175,6 +179,20 @@
                 	})
             	});
     		});
+
+            $('.schedule-row').click(function() {
+				console.log($(this).find('td').text());	
+				var dates = prompt("Enter new dates", $(this).find('td:first').text()+"   "+$(this).find('td:last').text());
+    				if (dates != null) {
+		                var date_begin = dates.split("   ")[0];
+		                var date_end = dates.split("   ")[1];
+						console.log(date_begin);
+						console.log(date_end);
+        				$(this).find('td:first').replaceWith("<td>"+date_begin+"</td>");
+						$(this).find('td:last').replaceWith("<td>"+date_end+"</td>");
+    				}
+			});
+
         });
 
     </script>
