@@ -98,7 +98,7 @@
                                 if ($.isNumeric(msg.data)) {
                                     series.addPoint([x, msg.data], true, false);
                                 }
-                                // $('#log').append('<br>'+$('<div/>').text('Received #'+msg.count+': '+msg.data).html());
+                                //$('#log').append('<br>'+$('<div/>').text('Received #'+msg.count+': '+msg.data).html());
                             });
                         }
                     }
@@ -181,16 +181,14 @@
     		});
 
             $('.schedule-row').click(function() {
-				console.log($(this).find('td').text());	
-				var dates = prompt("Enter new dates", $(this).find('td:first').text()+"   "+$(this).find('td:last').text());
-    				if (dates != null) {
-		                var date_begin = dates.split("   ")[0];
-		                var date_end = dates.split("   ")[1];
-						console.log(date_begin);
-						console.log(date_end);
-        				$(this).find('td:first').replaceWith("<td>"+date_begin+"</td>");
-						$(this).find('td:last').replaceWith("<td>"+date_end+"</td>");
-    				}
+				var dates = prompt("Enter new dates", $(this).find('td:nth-last-child(2)').text()+"   "+$(this).find('td:last').text());
+    			if (dates != null) {
+					var date_begin = dates.split("   ")[0];
+					var date_end = dates.split("   ")[1];
+					$(this).find('td:nth-last-child(2)').replaceWith("<td>"+date_begin+"</td>");
+					$(this).find('td:last').replaceWith("<td>"+date_end+"</td>");
+    			}
+				socket.emit('my_event', {data: [$(this).find('td:first').text(),date_begin,date_end]});
 			});
 
         });
@@ -224,8 +222,9 @@
         <div id="schedule-table-scroll">
             <table id="schedule-table">
                 <tbody id="schedule-table-tbody">
-                    <tr><th id="th-schedule-table" colspan="2">Schedule</th></tr>
+                    <tr><th id="th-schedule-table" colspan="3">Schedule</th></tr>
 					<tr>
+						<td id="th-schedule-table" align="center">№</td>
 						<td id="th-schedule-table" align="center">Start</td>
 					    <td id="th-schedule-table" align="center">End</td>
 					</tr>
@@ -233,6 +232,7 @@
                     <tr class="schedule-row">
 						<td>{{n[0]}}</td>
 						<td>{{n[1]}}</td>
+						<td>{{n[2]}}</td>
 					</tr>
                     {% endfor %}
                 </tbody>
@@ -240,7 +240,7 @@
         </div>
     </div>
  	
-    <!--<h2>Send:</h2>
+    <h2>Send:</h2>
 
     <form id="emit" method="POST" action='#'>
         <input type="text" name="emit_data" id="emit_data" placeholder="Message">
@@ -249,7 +249,6 @@
     
 	<h2>Received:</h2>
     <div id="log"></div>
-	-->
 
 </body>
 </html>

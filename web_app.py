@@ -53,9 +53,15 @@ def index():
 
 @socketio.on('my_event', namespace='/test')
 def test_message(message):
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': message['data'], 'count': session['receive_count']})
+	if len(message['data']) == 3:
+		for i in xrange(len(schedule_list)):
+			if schedule_list[i][0] ==  message['data'][0]:
+				schedule_list[i] = [message['data'][0], message['data'][1], message['data'][2]]
+				with open('static/schedule.txt', 'w') as f:
+					for row in schedule_list:
+						f.write(row[0]+','+row[1]+','+row[2]+'\n')
+	session['receive_count'] = session.get('receive_count', 0) + 1
+	# emit('my_response',{'data': message['data'], 'count': session['receive_count']})
 
 @socketio.on('my_ping', namespace='/test')
 def ping_pong():
