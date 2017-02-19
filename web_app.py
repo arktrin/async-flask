@@ -8,7 +8,7 @@ import random, os, timeit
 # Set this variable to "threading", "eventlet" or "gevent" to test the
 # different async modes, or leave it set to None for the application to choose
 # the best option based on installed packages.
-async_mode = None # gevent only working actually
+async_mode = None # gevent only works actually
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -24,9 +24,11 @@ with open('static/schedule.txt', 'r') as f:
 		schedule_list.append(line.split(','))
 
 val = Value('f', 0)
-val.value = 0
 
-def data_logger(val):
+def schedule_update(schedule_list):
+	pass
+
+def scheduled_data_logger(val):
     while True:
 		# this loop is spawned twice
 		# tic = timeit.default_timer()
@@ -34,6 +36,8 @@ def data_logger(val):
         # print val.value
 		socketio.sleep(1)
 		# print timeit.default_timer() - tic
+		for row in schedule_list:
+			print row[2]
 
 
 def background_thread():
@@ -42,7 +46,6 @@ def background_thread():
 	while True:
 		socketio.sleep(1)
 		count += 1
-		# print val.value, '+'
 		socketio.emit('my_response',
                       {'data': 100*val.value, 'count': count},
                       namespace='/test')
@@ -79,7 +82,7 @@ def test_disconnect():
     print('Client disconnected', request.sid)
 
 if __name__ == '__main__':
-	process0 = Process( target=data_logger, args=(val,) )
+	process0 = Process( target=scheduled_data_logger, args=(val,) )
 	process0.start()
 	# process0.join()
 	socketio.run(app, host="localhost", #  "192.168.199.14"
