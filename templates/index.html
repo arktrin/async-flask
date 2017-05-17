@@ -83,16 +83,21 @@
                 chart: {
                     renderTo: 'container',
                     defaultSeriesType: 'line',
+					animation: false,
                     events: {
                         load: function () {
                             var temp0 = this.series[0];
 							var temp1 = this.series[1];
+                            var temp2 = this.series[2];
+                            var temp3 = this.series[3];
                             socket.on('my_response', function (msg) {
                                 var x = (new Date()).getTime()
                                 // console.log(x, new Date())
                                 if ($.isNumeric(msg.data[0])) {
                                     temp0.addPoint([x, msg.data[0]], true, false);
 									temp1.addPoint([x, msg.data[1]], true, false);
+                                    temp2.addPoint([x, msg.data[2]], true, false);
+                                    temp3.addPoint([x, msg.data[3]], true, false);
                                 }
                                 //$('#log').append('<br>'+$('<div/>').text('Received #'+msg.count+': '+msg.data).html());
                             });
@@ -101,7 +106,7 @@
 
                 },
                 title: {
-                    text: 'Random data'
+                    text: 'Data'
                 },
 
 				rangeSelector: {
@@ -138,10 +143,17 @@
                 },
                 series: [{
 					name: 'Temperature 0',
-                    data: [] // chart_data
+                    data: []
                 	}, {
 					name: 'Temperature 1',
 					data: []
+                    }, {
+                    name: 'Temperature 2',
+                    data: []
+                    }, {
+                    name: 'Temperature 3',
+                    data: []
+				
 				}]
             };
 
@@ -180,7 +192,15 @@
             	});
     		});
 
-
+			$('.checkbox').click(function () {
+				var i = parseInt(this.name);
+    			var series = chart.series[i];
+    			if (series.visible) {
+        			series.hide();
+    			} else {
+        			series.show();
+    			}
+			});
         });
 
     </script>
@@ -194,8 +214,11 @@
 	<br>
     <!--<input type="text" name="csv_file" id="csv_file" placeholder="csv_file">
 	<input type="button" id="add_chart" value="add chart"/>-->
-
-    <div id="csv-table-wrapper">
+    <input type="checkbox" name="0" class="checkbox" checked>Temperature 0<br>
+	<input type="checkbox" name="1" class="checkbox" checked>Temperature 1<br>
+	<input type="checkbox" name="2" class="checkbox" checked>Temperature 2<br>
+	<input type="checkbox" name="3" class="checkbox" checked>Temperature 3<br>
+	<div id="csv-table-wrapper">
         <div id="csv-table-scroll">
             <table id="csv-table">
                 <tbody id="csv-table-tbody">
