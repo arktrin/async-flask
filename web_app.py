@@ -20,11 +20,11 @@ list_of_csv = os.listdir('static')
 val = Value('f', 0)
 
 def scheduled_data_logger(val):
-    while True:
-		# this loop is spawned twice
+	while True:
+		# this loop is spawed twice if in debug mode
 		# tic = timeit.default_timer()
 		val.value = random.random()
-        # print val.value
+		print val.value
 		socketio.sleep(1)
 		# print timeit.default_timer() - tic
 		# for row in schedule_list:
@@ -38,12 +38,12 @@ def background_thread():
 		socketio.sleep(1)
 		count += 1
 		socketio.emit('my_response',
-                      {'data': 100*val.value, 'count': count},
-                      namespace='/test')
+					  {'data': 100*val.value, 'count': count},
+					  namespace='/test')
 
 @app.route('/')
 def index():
-    return render_template('index.html', async_mode=socketio.async_mode, list_of_csv=list_of_csv) # , schedule_list=schedule_list)
+	return render_template('index.html', async_mode=socketio.async_mode, list_of_csv=list_of_csv) # , schedule_list=schedule_list)
 
 @socketio.on('my_event', namespace='/test')
 def test_message(message):
@@ -59,22 +59,22 @@ def test_message(message):
 
 @socketio.on('my_ping', namespace='/test')
 def ping_pong():
-    emit('my_pong')
+	emit('my_pong')
 
 @socketio.on('connect', namespace='/test')
 def test_connect():
-    global thread
-    if thread is None:
-        thread = socketio.start_background_task(target=background_thread)
-    emit('my_response', {'data': 'Connected!', 'count': 0})
+	global thread
+	if thread is None:
+		thread = socketio.start_background_task(target=background_thread)
+	emit('my_response', {'data': 'Connected!', 'count': 0})
 
 @socketio.on('disconnect', namespace='/test')
 def test_disconnect():
-    print('Client disconnected', request.sid)
+	print('Client disconnected', request.sid)
 
 if __name__ == '__main__':
 	process0 = Process( target=scheduled_data_logger, args=(val,) )
 	process0.start()
 	# process0.join()
 	socketio.run(app, host="localhost", #  "192.168.199.14"
-					  port=80, debug=True)
+					  port=80) #, debug=True)
