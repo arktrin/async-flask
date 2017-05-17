@@ -2,7 +2,8 @@
 
 from flask import Flask, render_template, session, request
 from flask_socketio import SocketIO, emit
-from multiprocessing import Process, Value
+from multiprocessing import Process, Value, Array
+import numpy as np 
 import random, os, timeit
 
 # Set this variable to "threading", "eventlet" or "gevent" to test the
@@ -17,14 +18,14 @@ thread = None
 
 list_of_csv = os.listdir('static')
 
-val = Value('f', 0)
+temps = Array('f', range(5, 9))
 
-def scheduled_data_logger(val):
+def data_logger(temps):
 	while True:
 		# this loop is spawed twice if in debug mode
 		# tic = timeit.default_timer()
-		val.value = random.random()
-		print val.value
+		temps[:] = np.random.randn(4)
+		print temps[:]
 		socketio.sleep(1)
 		# print timeit.default_timer() - tic
 		# for row in schedule_list:
@@ -38,7 +39,7 @@ def background_thread():
 		socketio.sleep(1)
 		count += 1
 		socketio.emit('my_response',
-					  {'data': 100*val.value, 'count': count},
+					  {'data': temps[:], 'count': count},
 					  namespace='/test')
 
 @app.route('/')
@@ -73,7 +74,7 @@ def test_disconnect():
 	print('Client disconnected', request.sid)
 
 if __name__ == '__main__':
-	process0 = Process( target=scheduled_data_logger, args=(val,) )
+	process0 = Process( target=data_logger, args=(temps,) )
 	process0.start()
 	# process0.join()
 	socketio.run(app, host="localhost", #  "192.168.199.14"

@@ -85,12 +85,14 @@
                     defaultSeriesType: 'line',
                     events: {
                         load: function () {
-                            var series = this.series[0];
+                            var temp0 = this.series[0];
+							var temp1 = this.series[1];
                             socket.on('my_response', function (msg) {
                                 var x = (new Date()).getTime()
                                 // console.log(x, new Date())
-                                if ($.isNumeric(msg.data)) {
-                                    series.addPoint([x, msg.data], true, false);
+                                if ($.isNumeric(msg.data[0])) {
+                                    temp0.addPoint([x, msg.data[0]], true, false);
+									temp1.addPoint([x, msg.data[1]], true, false);
                                 }
                                 //$('#log').append('<br>'+$('<div/>').text('Received #'+msg.count+': '+msg.data).html());
                             });
@@ -104,8 +106,8 @@
 
 				rangeSelector: {
                     buttons: [
-                        { count: 1, type: 'minute', text: '1M' }, 
-                        { count: 5, type: 'minute', text: '5M' }, 
+                        { count: 1, type: 'minute', text: '1m' }, 
+                        { count: 5, type: 'minute', text: '5m' }, 
                         { type: 'all', text: 'All' }],
                     inputEnabled: false,
                     selected: 0
@@ -135,25 +137,29 @@
                     }
                 },
                 series: [{
-                    data: chart_data
-                }]
+					name: 'Temperature 0',
+                    data: [] // chart_data
+                	}, {
+					name: 'Temperature 1',
+					data: []
+				}]
             };
 
-            var loading = $.get("/static/data0.csv", function(data) {
-                var lines = data.split('\n').slice(0,-1);
+            // var loading = $.get("/static/data0.csv", function(data) {
+            //    var lines = data.split('\n').slice(0,-1);
                 // console.log(lines.slice(0,-1));
-                $.each(lines, function(lineNo, line) {
-                    var items = line.split(',');
-                    var dateAndTime = items[0].split(' ');
-                    var dateParts = dateAndTime[0].split('.');    
-                    var timeParts = dateAndTime[1].split(':');
-                    var date_parsed = Date.UTC(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]), parseInt(timeParts[0]), parseInt(timeParts[1]));
+            //    $.each(lines, function(lineNo, line) {
+            //        var items = line.split(',');
+            //        var dateAndTime = items[0].split(' ');
+            //        var dateParts = dateAndTime[0].split('.');    
+            //        var timeParts = dateAndTime[1].split(':');
+            //        var date_parsed = Date.UTC(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]), parseInt(timeParts[0]), parseInt(timeParts[1]));
                     // console.log(date_parsed) //
-                    chart_data.push([date_parsed,parseInt(items[1])]);
-                })
+            //        chart_data.push([date_parsed,parseInt(items[1])]);
+            //    })
                 // console.log(chart_data)
-                var chart = new Highcharts.stockChart(options);
-            });
+            var chart = new Highcharts.stockChart(options);
+            // });
 
             // Highcharts.setOptions({ global: { useUTC: false } });
 
