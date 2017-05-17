@@ -3,26 +3,20 @@
 <head>
     <title>Flask-SocketIO Test</title>
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <script type="text/javascript" src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.2/socket.io.min.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.1/socket.io.js"></script>
 	<script type="text/javascript" src="https://code.highcharts.com/stock/highstock.js"></script>
 	<script type="text/javascript" src="https://code.highcharts.com/stock/modules/exporting.js"></script>
 	<script type="text/javascript" src="http://highcharts.github.io/export-csv/export-csv.js"></script>
 
     <style>
-        #csv-table-scroll, #schedule-table-scroll {
+        #csv-table-scroll {
             height:250px;
             overflow:auto;  
             margin-top:20px;
             width:12%;
         }
-		#schedule-table-scroll {
-			height:250px;
-            overflow:auto;
-            margin-top:20px;
-            width:20%;
-		}
-        #csv-table-wrapper table, #schedule-table-wrapper table  {
+        #csv-table-wrapper table {
             width:90%;
             border-collapse: collapse;
         }
@@ -34,14 +28,14 @@
         th {
             color: #333;
         }
-        #th-csv-table, #th-schedule-table{
+        #th-csv-table {
             font-size: 12pt;
             background: #f0f3f4;
         }
-        .csv-row:hover, .schedule-row:hover {
+        .csv-row:hover {
             background: #d6e3fc;
         }
-		.csv-row:active, .schedule-row:active {
+		.csv-row:active {
             background: #c094c4;
         }
 
@@ -180,16 +174,6 @@
             	});
     		});
 
-            $('.schedule-row').click(function() {
-				var dates = prompt("Enter new dates", $(this).find('td:nth-last-child(2)').text()+"   "+$(this).find('td:last').text());
-    			if (dates != null) {
-					var date_begin = dates.split("   ")[0];
-					var date_end = dates.split("   ")[1];
-					$(this).find('td:nth-last-child(2)').replaceWith("<td>"+date_begin+"</td>");
-					$(this).find('td:last').replaceWith("<td>"+date_end+"</td>");
-    			}
-				socket.emit('my_event', {data: [$(this).find('td:first').text(),date_begin,date_end]});
-			});
 
         });
 
@@ -218,27 +202,6 @@
         </div>
     </div> 
 
-    <div id="schedule-table-wrapper">
-        <div id="schedule-table-scroll">
-            <table id="schedule-table">
-                <tbody id="schedule-table-tbody">
-                    <tr><th id="th-schedule-table" colspan="3">Schedule</th></tr>
-					<tr>
-						<td id="th-schedule-table" align="center">№</td>
-						<td id="th-schedule-table" align="center">Start</td>
-					    <td id="th-schedule-table" align="center">End</td>
-					</tr>
-                    {% for n in schedule_list %}
-                    <tr class="schedule-row">
-						<td>{{n[0]}}</td>
-						<td>{{n[1]}}</td>
-						<td>{{n[2]}}</td>
-					</tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
  	
     <h2>Send:</h2>
 

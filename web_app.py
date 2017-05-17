@@ -16,17 +16,8 @@ socketio = SocketIO(app, async_mode=async_mode)
 thread = None
 
 list_of_csv = os.listdir('static')
-list_of_csv.remove('schedule.txt')
-schedule_list = []
-with open('static/schedule.txt', 'r') as f:
-	lines = f.read().split('\n')[:-1]
-	for line in lines:
-		schedule_list.append(line.split(','))
 
 val = Value('f', 0)
-
-def schedule_update(schedule_list):
-	pass
 
 def scheduled_data_logger(val):
     while True:
@@ -36,8 +27,8 @@ def scheduled_data_logger(val):
         # print val.value
 		socketio.sleep(1)
 		# print timeit.default_timer() - tic
-		for row in schedule_list:
-			print row[2]
+		# for row in schedule_list:
+		#	print row[2]
 
 
 def background_thread():
@@ -52,17 +43,17 @@ def background_thread():
 
 @app.route('/')
 def index():
-    return render_template('index.html', async_mode=socketio.async_mode, list_of_csv=list_of_csv, schedule_list=schedule_list)
+    return render_template('index.html', async_mode=socketio.async_mode, list_of_csv=list_of_csv) # , schedule_list=schedule_list)
 
 @socketio.on('my_event', namespace='/test')
 def test_message(message):
-	if len(message['data']) == 3:
-		for i in xrange(len(schedule_list)):
-			if schedule_list[i][0] ==  message['data'][0]:
-				schedule_list[i] = [message['data'][0], message['data'][1], message['data'][2]]
-				with open('static/schedule.txt', 'w') as f:
-					for row in schedule_list:
-						f.write(row[0]+','+row[1]+','+row[2]+'\n')
+	# if len(message['data']) == 3:
+	#	for i in xrange(len(schedule_list)):
+	#		if schedule_list[i][0] ==  message['data'][0]:
+	#			schedule_list[i] = [message['data'][0], message['data'][1], message['data'][2]]
+	#			with open('static/schedule.txt', 'w') as f:
+	#				for row in schedule_list:
+	#					f.write(row[0]+','+row[1]+','+row[2]+'\n')
 	session['receive_count'] = session.get('receive_count', 0) + 1
 	# emit('my_response',{'data': message['data'], 'count': session['receive_count']})
 
