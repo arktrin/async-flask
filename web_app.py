@@ -25,6 +25,19 @@ n = len(addrs)
 # temp_addr1 = 0x4A
 # temp_addr2 = 0x4B
 
+temps = Array( 'f', range(n) )
+i = 0
+temp_to_stab_0 = 28.0
+dac_val_0 = 5000
+DAC0_nCS = 29
+DAC1_nCS = 31
+dac_spi = spidev.SpiDev(0, 1)
+dac_spi.mode = 2
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(DAC0_nCS, GPIO.OUT)  # set up pin
+GPIO.setup(DAC1_nCS, GPIO.OUT)
+
+# set 16-bit mode for ADT7420
 for i in xrange(n):
 	bus3.write_byte_data(addrs[i], 0x03, 0x80)
 
@@ -36,17 +49,41 @@ def read_temp(bus):
 			Ts[i] += ((T_raw[0]<<8) + T_raw[1])/512.0
 		socketio.sleep(0.25)
 	return Ts
+
+def write_dac(value, DAC_nCS):
+	if value > 65535:
+		# print 'Warning! Max value = 2^16-1 = 65535'
+		value = 65535
+	elif value < 0:
+		value = 0
+	GPIO.output(DAC_nCS, 0)  # turn off pin 
+	value = value << 4
+	packet = list(struct.unpack('4B', struct.pack('>I', value)))
+	packet.pop(0)
+	# print packet
+	packet[0] += 48
+	dac_spi.xfer2(packet)
+	GPIO.output(DAC_nCS, 1)  # turn on pin
+
 	
 list_of_csv = os.listdir('static')
 
-temps = Array( 'f', range(n) )
-
 def data_logger(temps):
+	global i, dac_val_0
 	while True:
 	# this loop is spawed twice if in debug mode
 	# tic = timeit.default_timer()
 		temps[0:4] = read_temp(bus3)
-		print temps[:]
+		if i % 5 == 0:
+			error_0 = temp_to_stab_0 - temps[:][0]
+			if error_0 > 0:
+				dac_val_0 += 1 + int(round(20*error_0, 0))
+			elif error_0 < 0:
+				dac_val_0 -= 1 - int(round(20*error_0, 0))
+			write_dac(dac_val_0, DAC0_nCS)
+			print temps[:], error_0, dac_val_0
+		i += 1
+				
 		# socketio.sleep(0.25)
 	# print timeit.default_timer() - tic
 
