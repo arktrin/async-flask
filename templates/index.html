@@ -52,9 +52,9 @@
             //     http[s]://<domain>:<port>[/<namespace>]
             var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
 
-            socket.on('connect', function() {
-				socket.emit('my_event', {data: 'I\'m connected!!!!'});
-            });
+            // socket.on('connect', function() {
+			//	socket.emit('my_event', {data: 'I\'m connected!!!!'});
+            // });
 
             var ping_pong_times = [];
             var start_time;
@@ -73,8 +73,8 @@
                 $('#ping-pong').text(Math.round(10 * sum / ping_pong_times.length) / 10);
             });
 
-            $('form#emit').submit(function(event) {
-                socket.emit('my_event', {data: $('#emit_data').val()});
+            $('form#emit_temp').submit(function(event) {
+                socket.emit('my_event', {data: $('#emit_temp_data').val().split(" ")});
                 return false;
             });
             
@@ -218,7 +218,13 @@
 	<input type="checkbox" name="1" class="checkbox" checked>Temperature 1<br>
 	<input type="checkbox" name="2" class="checkbox" checked>Temperature 2<br>
 	<input type="checkbox" name="3" class="checkbox" checked>Temperature 3<br>
-	<div id="csv-table-wrapper">
+	<br>	
+    <form id="emit_temp" method="POST" action='#'>
+        <input type="text" name="emit_temp_data" id="emit_temp_data" placeholder="Example: temp0 28.0">
+        <input type="submit" value="Set temperature">
+    </form>
+    
+    <div id="csv-table-wrapper">
         <div id="csv-table-scroll">
             <table id="csv-table">
                 <tbody id="csv-table-tbody">
@@ -229,15 +235,10 @@
                 </tbody>
             </table>
         </div>
-    </div> 
-	
-    <h2>Send:</h2>
+    </div>
 
-    <form id="emit" method="POST" action='#'>
-        <input type="text" name="emit_data" id="emit_data" placeholder="Message">
-        <input type="submit" value="Echo">
-    </form>
-    
+
+
 	<h2>Received:</h2>
     <div id="log"></div>
 

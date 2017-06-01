@@ -27,7 +27,7 @@ n = len(addrs)
 
 temps = Array( 'f', range(n) )
 i = 0
-temp_to_stab_0 = 28.0
+temp_to_stab_0 = Value('d', 28.0)
 dac_val_0 = 5000
 DAC0_nCS = 29
 DAC1_nCS = 31
@@ -68,20 +68,20 @@ def write_dac(value, DAC_nCS):
 	
 list_of_csv = os.listdir('static')
 
-def data_logger(temps):
+def data_logger(temps,temp_to_stab_0):
 	global i, dac_val_0
 	while True:
 	# this loop is spawed twice if in debug mode
 	# tic = timeit.default_timer()
 		temps[0:4] = read_temp(bus3)
 		if i % 5 == 0:
-			error_0 = temp_to_stab_0 - temps[:][0]
+			error_0 = temp_to_stab_0.value - temps[:][0]
 			if error_0 > 0:
 				dac_val_0 += 1 + int(round(20*error_0, 0))
 			elif error_0 < 0:
 				dac_val_0 -= 1 - int(round(20*error_0, 0))
 			write_dac(dac_val_0, DAC0_nCS)
-			print temps[:], error_0, dac_val_0
+			print temps[:], temp_to_stab_0.value, error_0, dac_val_0
 		i += 1
 				
 		# socketio.sleep(0.25)
@@ -93,9 +93,7 @@ def background_thread():
 	while True:
 		socketio.sleep(1)
 		count += 1
-		socketio.emit('my_response',
-			  {'data': temps[:], 'count': count},
-			  namespace='/test')
+		socketio.emit('my_response', {'data': temps[:], 'count': count}, namespace='/test')
 
 @app.route('/')
 def index():
@@ -103,6 +101,11 @@ def index():
 
 @socketio.on('my_event', namespace='/test')
 def test_message(message):
+	global temp_to_stab_0
+	print message['data'], float(message['data'][1])
+	if message['data'][0] == 'temp0':
+		temp_to_stab_0.value = float(message['data'][1])
+		print temp_to_stab_0.value
 	# if len(message['data']) == 3:
 	#	for i in xrange(len(schedule_list)):
 	#	if schedule_list[i][0] ==  message['data'][0]:
@@ -129,7 +132,7 @@ def test_disconnect():
 	print('Client disconnected', request.sid)
 
 if __name__ == '__main__':
-	process0 = Process( target=data_logger, args=(temps,) )
+	process0 = Process( target=data_logger, args=(temps,temp_to_stab_0,) )
 	process0.start()
 	# process0.join()
 	socketio.run(app, host="192.168.2.123", port=80) #, debug=True)
