@@ -8,39 +8,7 @@
 	<script type="text/javascript" src="https://code.highcharts.com/stock/highstock.js"></script>
 	<script type="text/javascript" src="https://code.highcharts.com/stock/modules/exporting.js"></script>
 	<script type="text/javascript" src="http://highcharts.github.io/export-csv/export-csv.js"></script>
-
-    <style>
-        #csv-table-scroll {
-            height:250px;
-            overflow:auto;  
-            margin-top:20px;
-            width:12%;
-        }
-        #csv-table-wrapper table {
-            width:90%;
-            border-collapse: collapse;
-        }
-        td, th {
-            padding: 3px; 
-            border: 1px solid #000;
-			text-align: center; 
-        }
-        th {
-            color: #333;
-        }
-        #th-csv-table {
-            font-size: 12pt;
-            background: #f0f3f4;
-        }
-        .csv-row:hover {
-            background: #d6e3fc;
-        }
-		.csv-row:active {
-            background: #c094c4;
-        }
-
-    </style>
-
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='thermal_chamber.css') }}">
 
     <script type="text/javascript" charset="utf-8">
         $(document).ready(function() {
