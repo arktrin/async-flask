@@ -143,22 +143,22 @@
 
             // Highcharts.setOptions({ global: { useUTC: false } });
 
-			$('.csv-row').click(function() {
-				var chart = $('#container').highcharts(), series = chart.series[0];
-        		chart.series[0].setData([]);
-				var loading = $.get('/static/'+$(this).find('td').text(), function(data) {
-                	var lines = data.split('\n').slice(0,-1);
+			//$('.csv-row').click(function() {
+			//	var chart = $('#container').highcharts(), series = chart.series[0];
+        	//	chart.series[0].setData([]);
+			//	var loading = $.get('/static/'+$(this).find('td').text(), function(data) {
+            //    	var lines = data.split('\n').slice(0,-1);
                 	// console.log(lines.slice(0,-1));
-                	$.each(lines, function(lineNo, line) {
-                    	var items = line.split(',');
-                    	var dateAndTime = items[0].split(' ');
-                    	var dateParts = dateAndTime[0].split('.');    
-                    	var timeParts = dateAndTime[1].split(':');
-                    	var date_parsed = Date.UTC(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]), parseInt(timeParts[0]), parseInt(timeParts[1]));
-						chart.series[0].addPoint([date_parsed,parseInt(items[1])], true, false);
-                	})
-            	});
-    		});
+            //    	$.each(lines, function(lineNo, line) {
+            //        	var items = line.split(',');
+            //        	var dateAndTime = items[0].split(' ');
+            //        	var dateParts = dateAndTime[0].split('.');    
+            //        	var timeParts = dateAndTime[1].split(':');
+            //        	var date_parsed = Date.UTC(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]), parseInt(timeParts[0]), parseInt(timeParts[1]));
+			//			chart.series[0].addPoint([date_parsed,parseInt(items[1])], true, false);
+            //    	})
+            //	});
+    		//});
 
 			$('.checkbox').click(function () {
 				var i = parseInt(this.name);
@@ -180,9 +180,8 @@
 
 	<div id="container" style="height: 800px; width: 1600px"></div>
 	<br>
-    <!--<input type="text" name="csv_file" id="csv_file" placeholder="csv_file">
-	<input type="button" id="add_chart" value="add chart"/>-->
-    <input type="checkbox" name="0" class="checkbox" checked>Temperature 0<br>
+    
+	<input type="checkbox" name="0" class="checkbox" checked>Temperature 0<br>
 	<input type="checkbox" name="1" class="checkbox" checked>Temperature 1<br>
 	<input type="checkbox" name="2" class="checkbox" checked>Temperature 2<br>
 	<input type="checkbox" name="3" class="checkbox" checked>Temperature 3<br>
@@ -190,8 +189,12 @@
     <form id="emit_temp" method="POST" action='#'>
         <input type="text" name="emit_temp_data" id="emit_temp_data" placeholder="Example: temp0 28.0">
         <input type="submit" value="Set temperature">
-    </form>
-    
+	</form>
+
+	<!--<input type="text" name="csv_file" id="csv_file" placeholder="csv_file">
+	<input type="button" id="add_chart" value="add chart"/>-->
+
+	<!--
     <div id="csv-table-wrapper">
         <div id="csv-table-scroll">
             <table id="csv-table">
@@ -204,7 +207,7 @@
             </table>
         </div>
     </div>
-
+	-->
 
 
 	<h2>Received:</h2>

@@ -66,7 +66,7 @@ def write_dac(value, DAC_nCS):
 	GPIO.output(DAC_nCS, 1)  # turn on pin
 
 	
-list_of_csv = os.listdir('static')
+# list_of_csv = os.listdir('static')
 
 def data_logger(temps,temp_to_stab_0):
 	global i, dac_val_0
@@ -97,7 +97,7 @@ def background_thread():
 
 @app.route('/')
 def index():
-	return render_template('index.html', async_mode=socketio.async_mode, list_of_csv=list_of_csv) # , schedule_list=schedule_list)
+	return render_template('index.html', async_mode=socketio.async_mode) #, list_of_csv=list_of_csv, schedule_list=schedule_list)
 
 @socketio.on('my_event', namespace='/test')
 def test_message(message):
