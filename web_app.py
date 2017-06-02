@@ -3,8 +3,9 @@
 from flask import Flask, render_template, session, request
 from flask_socketio import SocketIO, emit
 from multiprocessing import Process, Value, Array
-import numpy as np 
-import sys, random, os, timeit, struct, math, spidev, smbus
+import numpy as np
+import ctypes as c 
+import sys, random, os, timeit, struct, spidev, smbus
 import RPi.GPIO as GPIO
 
 # Set this variable to "threading", "eventlet" or "gevent" to test the
@@ -17,83 +18,89 @@ app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, async_mode=async_mode)
 thread = None
 
-bus3 = smbus.SMBus(3)
-addrs = [0x48, 0x4A, 0x4B, 0x49]
-n = len(addrs)
-# temp_addr0 = 0x48
-# temp_addr3 = 0x49
-# temp_addr1 = 0x4A
-# temp_addr2 = 0x4B
+n, m = 2, 7
+mp_arr = Array(c.c_double, n*m)
+arr = np.frombuffer(mp_arr.get_obj())
+main_data = arr.reshape((n,m))
 
-temps = Array( 'f', range(n) )
+# main_data = [T0, T1, T_ambient, (T0+T1)/2, T_to_stab, T_error, DAC_value]
+
+i2c_bus_list = [smbus.SMBus(3), smbus.SMBus(4)] # , smbus.SMBus(5)
+temp_addrs = [0x48, 0x49, 0x4A] # , 0x4B]
+
+# set 16-bit mode in all ADT7420
+for bus in i2c_bus_list:
+	for addr in temp_addrs:
+		bus.write_byte_data(addr, 0x03, 0x80)
+
 i = 0
-temp_to_stab_0 = Value('d', 28.0)
-dac_val_0 = 5000
-DAC0_nCS = 29
-DAC1_nCS = 31
 dac_spi = spidev.SpiDev(0, 1)
 dac_spi.mode = 2
 GPIO.setmode(GPIO.BOARD)
-GPIO.setup(DAC0_nCS, GPIO.OUT)  # set up pin
-GPIO.setup(DAC1_nCS, GPIO.OUT)
+DAC_nCS = [29, 31, 32] #, 33
+for nCS in DAC_nCS:
+	GPIO.setup(nCS, GPIO.OUT)
 
-# set 16-bit mode for ADT7420
+default_stab_temps = [28.0, 28.0, 28.0]
+default_dac_vals = [5000, 5000, 5000]
+
 for i in xrange(n):
-	bus3.write_byte_data(addrs[i], 0x03, 0x80)
+	main_data[i,4] = default_stab_temps[i] 
+	main_data[i,6] = default_dac_vals[i]
 
-def read_temp(bus):
-	Ts = n*[0]
-	for i in xrange(4):
-		for i in xrange(n):
-			T_raw = bus.read_i2c_block_data(addrs[i], 0, 2)
-			Ts[i] += ((T_raw[0]<<8) + T_raw[1])/512.0
+def read_all_temp():
+	Ts = np.zeros((n, 4))
+	for k in xrange(8):
+		for i in xrange(len(i2c_bus_list)):
+			for j in xrange(len(temp_addrs)):
+				T_raw = i2c_bus_list[i].read_i2c_block_data(temp_addrs[j], 0, 2)
+				Ts[i,j] += ((T_raw[0]<<8) + T_raw[1])/1024.0
+			Ts[i,3] = (Ts[i,0] + Ts[i,1])/2.0
 		socketio.sleep(0.25)
 	return Ts
 
-def write_dac(value, DAC_nCS):
+def write_dac(value, nCS_pin):
+	value = int(value)
 	if value > 65535:
-		# print 'Warning! Max value = 2^16-1 = 65535'
 		value = 65535
 	elif value < 0:
 		value = 0
-	GPIO.output(DAC_nCS, 0)  # turn off pin 
+	GPIO.output(nCS_pin, 0)  # select AD5683 
 	value = value << 4
 	packet = list(struct.unpack('4B', struct.pack('>I', value)))
 	packet.pop(0)
-	# print packet
 	packet[0] += 48
 	dac_spi.xfer2(packet)
-	GPIO.output(DAC_nCS, 1)  # turn on pin
+	GPIO.output(nCS_pin, 1)  # deselect AD5683
 
 	
 # list_of_csv = os.listdir('static')
 
-def data_logger(temps,temp_to_stab_0):
-	global i, dac_val_0
+def data_logger(main_data):
+	global i, n
 	while True:
 	# this loop is spawed twice if in debug mode
 	# tic = timeit.default_timer()
-		temps[0:4] = read_temp(bus3)
-		if i % 5 == 0:
-			error_0 = temp_to_stab_0.value - temps[:][0]
-			if error_0 > 0:
-				dac_val_0 += 1 + int(round(20*error_0, 0))
-			elif error_0 < 0:
-				dac_val_0 -= 1 - int(round(20*error_0, 0))
-			write_dac(dac_val_0, DAC0_nCS)
-			print temps[:], temp_to_stab_0.value, error_0, dac_val_0
+		main_data[:,:4] = read_all_temp()
+		if i % 2 == 0:
+			for i in xrange(n):
+				main_data[i,5] = main_data[i,4] - main_data[i,3]
+				if main_data[i,5] > 0:
+					main_data[i,6] += 1 + int(round(20*main_data[i,5], 0))
+				elif main_data[i,5] < 0:
+					main_data[i,6] -= 1 - int(round(20*main_data[i,5], 0))
+				write_dac(main_data[i,6], DAC_nCS[i])
+		print main_data, '\n'	
 		i += 1
-				
-		# socketio.sleep(0.25)
 	# print timeit.default_timer() - tic
 
 def background_thread():
-	global temps
+	global main_data
 	count = 0
 	while True:
 		socketio.sleep(1)
 		count += 1
-		socketio.emit('my_response', {'data': temps[:], 'count': count}, namespace='/test')
+		socketio.emit('my_response', {'data': main_data.tolist(), 'count': count}, namespace='/test')
 
 @app.route('/')
 def index():
@@ -101,18 +108,11 @@ def index():
 
 @socketio.on('my_event', namespace='/test')
 def test_message(message):
-	global temp_to_stab_0
-	print message['data'], float(message['data'][1])
+	global main_data
+	print message['data']
 	if message['data'][0] == 'temp0':
 		temp_to_stab_0.value = float(message['data'][1])
 		print temp_to_stab_0.value
-	# if len(message['data']) == 3:
-	#	for i in xrange(len(schedule_list)):
-	#	if schedule_list[i][0] ==  message['data'][0]:
-	#		schedule_list[i] = [message['data'][0], message['data'][1], message['data'][2]]
-	#		with open('static/schedule.txt', 'w') as f:
-	#		for row in schedule_list:
-	#			f.write(row[0]+','+row[1]+','+row[2]+'\n')
 	session['receive_count'] = session.get('receive_count', 0) + 1
 	# emit('my_response',{'data': message['data'], 'count': session['receive_count']})
 
@@ -132,7 +132,7 @@ def test_disconnect():
 	print('Client disconnected', request.sid)
 
 if __name__ == '__main__':
-	process0 = Process( target=data_logger, args=(temps,temp_to_stab_0,) )
+	process0 = Process( target=data_logger, args=(main_data,) )
 	process0.start()
 	# process0.join()
-	socketio.run(app, host="192.168.2.123", port=80) #, debug=True)
+	socketio.run(app, host="192.168.2.123", port=800) #, debug=True)
