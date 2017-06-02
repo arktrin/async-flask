@@ -82,7 +82,7 @@ def data_logger(main_data):
 	# this loop is spawed twice if in debug mode
 	# tic = timeit.default_timer()
 		main_data[:,:4] = read_all_temp()
-		if i % 2 == 0:
+		if i % 3 == 0:
 			for i in xrange(n):
 				main_data[i,5] = main_data[i,4] - main_data[i,3]
 				if main_data[i,5] > 0:
@@ -111,8 +111,9 @@ def test_message(message):
 	global main_data
 	print message['data']
 	if message['data'][0] == 'temp0':
-		temp_to_stab_0.value = float(message['data'][1])
-		print temp_to_stab_0.value
+		pass
+		# temp_to_stab_0.value = float(message['data'][1])
+		# print temp_to_stab_0.value
 	session['receive_count'] = session.get('receive_count', 0) + 1
 	# emit('my_response',{'data': message['data'], 'count': session['receive_count']})
 
@@ -135,4 +136,4 @@ if __name__ == '__main__':
 	process0 = Process( target=data_logger, args=(main_data,) )
 	process0.start()
 	# process0.join()
-	socketio.run(app, host="192.168.2.123", port=800) #, debug=True)
+	socketio.run(app, host="192.168.2.123", port=80) #, debug=True)

@@ -41,12 +41,13 @@
                 $('#ping-pong').text(Math.round(10 * sum / ping_pong_times.length) / 10);
             });
 
-            $('form#emit_temp').submit(function(event) {
-                socket.emit('my_event', {data: $('#emit_temp_data').val().split(" ")});
+            $('form#emit').submit(function(event) {
+                socket.emit('my_event', {data: $('#emit_data').val().split(" ")});
                 return false;
             });
             
             var chart_data = [];
+			var main_data = [[],[]];
             var options = {
                 chart: {
                     renderTo: 'container',
@@ -54,20 +55,22 @@
 					animation: false,
                     events: {
                         load: function () {
-                            var temp0 = this.series[0];
-							var temp1 = this.series[1];
-                            var temp2 = this.series[2];
-                            var temp3 = this.series[3];
+							for (i = 0; i < 2; i++) {
+								for (j = 0; j < 7; j++) {	
+                            		main_data[i][j] = this.series[j+i*7];
+								}
+							}
                             socket.on('my_response', function (msg) {
                                 var x = (new Date()).getTime()
                                 // console.log(x, new Date())
-                                if ($.isNumeric(msg.data[0])) {
-                                    temp0.addPoint([x, msg.data[0]], true, false);
-									temp1.addPoint([x, msg.data[1]], true, false);
-                                    temp2.addPoint([x, msg.data[2]], true, false);
-                                    temp3.addPoint([x, msg.data[3]], true, false);
+                                if ($.isNumeric(msg.data[0][0])) {
+									for (i = 0; i < 2; i++) {
+                                		for (j = 0; j < 7; j++) {   
+                                    		main_data[i][j].addPoint([x, msg.data[i][j]], true, false);
+                                		}
+                            		}
                                 }
-                                //$('#log').append('<br>'+$('<div/>').text('Received #'+msg.count+': '+msg.data).html());
+                                // $('#log').append('<br>'+$('<div/>').text('Received #'+msg.count+': '+msg.data).html());
                             });
                         }
                     }
@@ -80,7 +83,8 @@
 				rangeSelector: {
                     buttons: [
                         { count: 1, type: 'minute', text: '1m' }, 
-                        { count: 5, type: 'minute', text: '5m' }, 
+                        { count: 5, type: 'minute', text: '5m' },
+						{ count: 15, type: 'minute', text: '15m' }, 
                         { type: 'all', text: 'All' }],
                     inputEnabled: false,
                     selected: 0
@@ -104,25 +108,28 @@
                         text: 'Date'
                     }
                 },
-                yAxis: {
-                    title: {
-                        text: 'value'
-                    }
-                },
-                series: [{
-					name: 'Temperature 0',
-                    data: []
-                	}, {
-					name: 'Temperature 1',
-					data: []
-                    }, {
-                    name: 'Temperature 2',
-                    data: []
-                    }, {
-                    name: 'Temperature 3',
-                    data: []
-				
-				}]
+                yAxis: [
+					{ title: { text: 'Temperature, C' }}, 
+					{ title: { text: 'DAC value' }}
+				],
+                series: [
+					{ name: 'Cham0 temp0 mean', data: []},
+					{ name: 'Cham0 temp0', data: [], visible: false},
+					{ name: 'Cham0 temp1', data: [], visible: false},
+					{ name: 'Cham0 ambient temp', data: [], visible: false},
+					{ name: 'Cham0 target temp', data: [], dashStyle: 'longdash', visible: false},
+                    { name: 'Cham0 temp error', data: [], visible: false},
+					{ name: 'Cham0 DAC value', yAxis: 1, data: [], visible: false},
+
+                    { name: 'Cham1 temp1 mean', data: []},
+                    { name: 'Cham1 temp0', data: [], visible: false},
+                    { name: 'Cham1 temp1', data: [], visible: false},
+                    { name: 'Cham1 ambient temp', data: [], visible: false},
+                    { name: 'Cham1 target temp', data: [], dashStyle: 'longdash', visible: false},
+                    { name: 'Cham1 temp error', data: [], visible: false},
+                    { name: 'Cham1 DAC value', yAxis: 1, data: [], visible: false}
+
+				]
             };
 
             // var loading = $.get("/static/data0.csv", function(data) {
@@ -175,21 +182,50 @@
 </head>
 <body>
 
-    <!-- <p>Async mode is: <b>{{ async_mode }}</b></p> -->
-    <p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
-
 	<div id="container" style="height: 800px; width: 1600px"></div>
 	<br>
-    
-	<input type="checkbox" name="0" class="checkbox" checked>Temperature 0<br>
-	<input type="checkbox" name="1" class="checkbox" checked>Temperature 1<br>
-	<input type="checkbox" name="2" class="checkbox" checked>Temperature 2<br>
-	<input type="checkbox" name="3" class="checkbox" checked>Temperature 3<br>
+   
+	<table>
+		<tbody>
+			<tr><th colspan="8">Lines visibility</th></tr>
+				<tr>
+					<td>Chamber0</td>
+					<td><input type="checkbox" name="0" class="checkbox" checked>temp0 mean </td>
+					<td><input type="checkbox" name="1" class="checkbox">temp00 </td>
+					<td><input type="checkbox" name="2" class="checkbox">temp01 </td>
+                    <td><input type="checkbox" name="3" class="checkbox">ambient temp </td>
+                    <td><input type="checkbox" name="4" class="checkbox">target temp </td>
+                    <td><input type="checkbox" name="5" class="checkbox">temp error</td>
+                    <td><input type="checkbox" name="6" class="checkbox">DAC value </td>
+				</tr>
+				<tr>
+					<td>Chamber1</td>
+                    <td><input type="checkbox" name="7" class="checkbox" checked>temp1 mean </td>
+                    <td><input type="checkbox" name="8" class="checkbox">temp10 </td>
+                    <td><input type="checkbox" name="9" class="checkbox">temp11 </td>
+                    <td><input type="checkbox" name="10" class="checkbox">ambient temp </td>
+                    <td><input type="checkbox" name="11" class="checkbox">target temp </td>
+                    <td><input type="checkbox" name="12" class="checkbox">temp error</td>
+                    <td><input type="checkbox" name="13" class="checkbox">DAC value </td>
+				</th>
+		</tbody>
+	</table> 
 	<br>	
-    <form id="emit_temp" method="POST" action='#'>
-        <input type="text" name="emit_temp_data" id="emit_temp_data" placeholder="Example: temp0 28.0">
+
+    <form id="emit" method="POST" action='#'>
+        <input type="text" name="emit_temp_data" id="emit_data" placeholder="Example: temp0 28.0">
         <input type="submit" value="Set temperature">
 	</form>
+    <form id="emit" method="POST" action='#'>
+        <input type="text" name="emit_dac_data" id="emit_data" placeholder="Example: dac1 5000">
+        <input type="submit" value="Set DAC value">
+    </form>
+	<br>
+	<br>
+
+	<!-- <p>Async mode is: <b>{{ async_mode }}</b></p> -->
+	<p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
+    <br>
 
 	<!--<input type="text" name="csv_file" id="csv_file" placeholder="csv_file">
 	<input type="button" id="add_chart" value="add chart"/>-->
@@ -207,11 +243,10 @@
             </table>
         </div>
     </div>
-	-->
-
-
+	
 	<h2>Received:</h2>
     <div id="log"></div>
+	-->
 
 </body>
 </html>
