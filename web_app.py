@@ -23,7 +23,7 @@ mp_arr = Array(c.c_double, n*m)
 arr = np.frombuffer(mp_arr.get_obj())
 main_data = arr.reshape((n,m))
 
-# main_data = [T0, T1, T_ambient, (T0+T1)/2, T_to_stab, T_error, DAC_value]
+# main_data = [(T0+T1)/2, T0, T1, T_ambient, T_to_stab, T_error, DAC_value]
 
 i2c_bus_list = [smbus.SMBus(3), smbus.SMBus(4)] # , smbus.SMBus(5)
 temp_addrs = [0x48, 0x49, 0x4A] # , 0x4B]
@@ -54,8 +54,8 @@ def read_all_temp():
 		for i in xrange(len(i2c_bus_list)):
 			for j in xrange(len(temp_addrs)):
 				T_raw = i2c_bus_list[i].read_i2c_block_data(temp_addrs[j], 0, 2)
-				Ts[i,j] += ((T_raw[0]<<8) + T_raw[1])/1024.0
-			Ts[i,3] = (Ts[i,0] + Ts[i,1])/2.0
+				Ts[i,j+1] += ((T_raw[0]<<8) + T_raw[1])/1024.0
+			Ts[i,0] = (Ts[i,1] + Ts[i,2])/2.0
 		socketio.sleep(0.25)
 	return Ts
 
@@ -84,7 +84,7 @@ def data_logger(main_data):
 		main_data[:,:4] = read_all_temp()
 		if i % 3 == 0:
 			for i in xrange(n):
-				main_data[i,5] = main_data[i,4] - main_data[i,3]
+				main_data[i,5] = main_data[i,4] - main_data[i,0]
 				if main_data[i,5] > 0:
 					main_data[i,6] += 1 + int(round(20*main_data[i,5], 0))
 				elif main_data[i,5] < 0:
@@ -109,11 +109,13 @@ def index():
 @socketio.on('my_event', namespace='/test')
 def test_message(message):
 	global main_data
-	print message['data']
-	if message['data'][0] == 'temp0':
-		pass
-		# temp_to_stab_0.value = float(message['data'][1])
-		# print temp_to_stab_0.value
+	# print message['data']
+	if message['data'][0][:4] == 'temp':
+		chamber_num = int(message['data'][0][4])
+		main_data[chamber_num,4] = float(message['data'][1])
+	elif message['data'][0][:3] == 'dac':
+		chamber_num = int(message['data'][0][3])
+		main_data[chamber_num,6] = float(message['data'][1])
 	session['receive_count'] = session.get('receive_count', 0) + 1
 	# emit('my_response',{'data': message['data'], 'count': session['receive_count']})
 
