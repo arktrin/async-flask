@@ -81,15 +81,15 @@ def data_logger(main_data):
 	# this loop is spawed twice if in debug mode
 	# tic = timeit.default_timer()
 		main_data[:,:4] = read_all_temp()
-		if i % 3 == 0:
-			for i in xrange(n):
-				main_data[i,5] = main_data[i,4] - main_data[i,0]
-				if main_data[i,5] > 0:
-					main_data[i,6] += 1 + int(round(20*main_data[i,5], 0))
-				elif main_data[i,5] < 0:
-					main_data[i,6] -= 1 - int(round(20*main_data[i,5], 0))
-				write_dac(main_data[i,6], DAC_nCS[i])
-		print main_data, '\n'	
+		for j in xrange(n):
+			main_data[j,5] = main_data[j,4] - main_data[j,0]
+			if i % 3 == 0:
+				if main_data[j,5] > 0:
+					main_data[j,6] += 1 + int(round(10*main_data[j,5], 0))
+				elif main_data[j,5] < 0:
+					main_data[j,6] -= 1 - int(round(10*main_data[j,5], 0))
+				write_dac(main_data[j,6], DAC_nCS[j])
+		# print main_data, '\n'	
 		i += 1
 	# print timeit.default_timer() - tic
 
