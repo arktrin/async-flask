@@ -5,8 +5,9 @@ from flask_socketio import SocketIO, emit
 from multiprocessing import Process, Array
 import numpy as np
 import ctypes as c 
-import sys, random, os, timeit, struct # , spidev, smbus
-# import RPi.GPIO as GPIO
+import sys, random, os, timeit, struct, spidev, smbus
+import RPi.GPIO as GPIO
+
 
 # Set this variable to "threading", "eventlet" or "gevent" to test the
 # different async modes, or leave it set to None for the application to choose
@@ -25,9 +26,9 @@ main_data = arr.reshape((n,m))
 
 # main_data = [(T0+T1)/2, T0, T1, T_ambient, T_to_stab, T_error, DAC_value]
 
-i2c_bus_list = [1,2] # smbus.SMBus(3), smbus.SMBus(4)] # , smbus.SMBus(5)
+i2c_bus_list = [smbus.SMBus(3), smbus.SMBus(4)] # , smbus.SMBus(5)
 temp_addrs = [0x48, 0x49, 0x4A] # , 0x4B]
-"""
+
 # set 16-bit mode in all ADT7420
 for bus in i2c_bus_list:
 	for addr in temp_addrs:
@@ -36,10 +37,9 @@ for bus in i2c_bus_list:
 dac_spi = spidev.SpiDev(0, 1)
 dac_spi.mode = 2
 GPIO.setmode(GPIO.BOARD)
-"""
 DAC_nCS = [29, 31, 32] #, 33
-# for nCS in DAC_nCS:
-#	GPIO.setup(nCS, GPIO.OUT)
+for nCS in DAC_nCS:
+	GPIO.setup(nCS, GPIO.OUT)
 i = 0
 default_stab_temps = [28.0, 28.0, 28.0]
 default_dac_vals = [5000, 5000, 5000]
@@ -53,8 +53,8 @@ def read_all_temp():
 	for k in xrange(8):
 		for i in xrange(len(i2c_bus_list)):
 			for j in xrange(len(temp_addrs)):
-				# T_raw = i2c_bus_list[i].read_i2c_block_data(temp_addrs[j], 0, 2)
-				Ts[i,j+1] += np.random.randn()  # ((T_raw[0]<<8) + T_raw[1])/1024.0
+				T_raw = i2c_bus_list[i].read_i2c_block_data(temp_addrs[j], 0, 2)
+				Ts[i,j+1] += ((T_raw[0]<<8) + T_raw[1])/1024.0
 			Ts[i,0] = (Ts[i,1] + Ts[i,2])/2.0
 		socketio.sleep(0.25)
 	return Ts
@@ -65,7 +65,6 @@ def write_dac(value, nCS_pin):
 		value = 65535
 	elif value < 0:
 		value = 0
-"""
 	GPIO.output(nCS_pin, 0)  # select AD5683 
 	value = value << 4
 	packet = list(struct.unpack('4B', struct.pack('>I', value)))
@@ -73,7 +72,6 @@ def write_dac(value, nCS_pin):
 	packet[0] += 48
 	dac_spi.xfer2(packet)
 	GPIO.output(nCS_pin, 1)  # deselect AD5683
-"""
 	
 # list_of_csv = os.listdir('static')
 
@@ -139,5 +137,5 @@ if __name__ == '__main__':
 	process0 = Process( target=data_logger, args=(main_data,) )
 	process0.start()
 	# process0.join()
-	socketio.run(app, host="192.168.199.14", port=80) #, debug=True)
-	# socketio.run(app, host="192.168.2.123", port=80) #, debug=True)
+	# socketio.run(app, host="192.168.199.14", port=80) #, debug=True)
+	socketio.run(app, host="192.168.2.123", port=80) #, debug=True)
