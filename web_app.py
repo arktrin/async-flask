@@ -42,7 +42,7 @@ for nCS in DAC_nCS:
 	GPIO.setup(nCS, GPIO.OUT)
 i = 0
 default_stab_temps = [28.0, 28.0, 28.0]
-default_dac_vals = [5000, 5000, 5000]
+default_dac_vals = [6500, 6500, 6500]
 
 for i in xrange(n):
 	main_data[i,4] = default_stab_temps[i] 
@@ -50,11 +50,11 @@ for i in xrange(n):
 
 def read_all_temp():
 	Ts = np.zeros((n, 4))
-	for k in xrange(8):
+	for k in xrange(12):
 		for i in xrange(len(i2c_bus_list)):
 			for j in xrange(len(temp_addrs)):
 				T_raw = i2c_bus_list[i].read_i2c_block_data(temp_addrs[j], 0, 2)
-				Ts[i,j+1] += ((T_raw[0]<<8) + T_raw[1])/1024.0
+				Ts[i,j+1] += ((T_raw[0]<<8) + T_raw[1])/1536.0
 			Ts[i,0] = (Ts[i,1] + Ts[i,2])/2.0
 		socketio.sleep(0.25)
 	return Ts
@@ -83,7 +83,7 @@ def data_logger(main_data):
 		main_data[:,:4] = read_all_temp()
 		for j in xrange(n):
 			main_data[j,5] = main_data[j,4] - main_data[j,0]
-			if i % 3 == 0:
+			if i % 4 == 0:
 				if main_data[j,5] > 0:
 					main_data[j,6] += 1 + int(round(10*main_data[j,5], 0))
 				elif main_data[j,5] < 0:
@@ -97,7 +97,7 @@ def background_thread():
 	global main_data
 	count = 0
 	while True:
-		socketio.sleep(2)
+		socketio.sleep(3)
 		count += 1
 		socketio.emit('my_response', {'data': main_data.tolist(), 'count': count}, namespace='/test')
 
