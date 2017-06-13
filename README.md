@@ -1,1 +1,1 @@
-Test of asynchronous flask communication with web page.
+Thermal chamber based on raspberry pi using asynchronous flask and highcharts.
