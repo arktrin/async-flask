@@ -24,9 +24,12 @@ mp_arr = Array(c.c_double, n*m)
 arr = np.frombuffer(mp_arr.get_obj())
 main_data = arr.reshape((n,m))
 
-# main_data = [(T0+T1)/2, T0, T1, T_ambient, T_to_stab, T_error, DAC_value]
+# main_data --- [(T0+T1)/2, T0, T1, T_ambient, T_to_stab, T_error, DAC_value]
 
-i2c_bus_list = [smbus.SMBus(3), smbus.SMBus(4)] # , smbus.SMBus(5)
+# TCA9548A_reset_pin = 7
+# GPIO.setup(TCA9548A_reset_pin, GPIO.OUT)
+
+i2c_bus_list = [smbus.SMBus(4), smbus.SMBus(5)] # , smbus.SMBus(5)
 temp_addrs = [0x48, 0x49, 0x4A] # , 0x4B]
 
 # set 16-bit mode in all ADT7420
@@ -41,8 +44,8 @@ DAC_nCS = [29, 31, 32] #, 33
 for nCS in DAC_nCS:
 	GPIO.setup(nCS, GPIO.OUT)
 i = 0
-default_stab_temps = [28.0, 28.0, 28.0]
-default_dac_vals = [6500, 6500, 6500]
+default_stab_temps = [32.0, 32.0, 32.0]
+default_dac_vals = [14000, 12000, 12000]
 
 for i in xrange(n):
 	main_data[i,4] = default_stab_temps[i] 
@@ -73,8 +76,6 @@ def write_dac(value, nCS_pin):
 	dac_spi.xfer2(packet)
 	GPIO.output(nCS_pin, 1)  # deselect AD5683
 	
-# list_of_csv = os.listdir('static')
-
 def data_logger(main_data):
 	global i, n
 	while True:
@@ -82,12 +83,12 @@ def data_logger(main_data):
 	# tic = timeit.default_timer()
 		main_data[:,:4] = read_all_temp()
 		for j in xrange(n):
-			main_data[j,5] = main_data[j,4] - main_data[j,0]
+			main_data[j,5] = main_data[j,4] - main_data[j,0] #error
 			if i % 4 == 0:
 				if main_data[j,5] > 0:
-					main_data[j,6] += 1 + int(round(10*main_data[j,5], 0))
+					main_data[j,6] += 1 + int(round(100*main_data[j,5], 0))
 				elif main_data[j,5] < 0:
-					main_data[j,6] -= 1 - int(round(10*main_data[j,5], 0))
+					main_data[j,6] -= 1 - int(round(100*main_data[j,5], 0))
 				write_dac(main_data[j,6], DAC_nCS[j])
 		# print main_data, '\n'	
 		i += 1
@@ -103,7 +104,7 @@ def background_thread():
 
 @app.route('/')
 def index():
-	return render_template('index.html', async_mode=socketio.async_mode) #, list_of_csv=list_of_csv, schedule_list=schedule_list)
+	return render_template('index.html', async_mode=socketio.async_mode) #, list_of_csv=list_of_csv
 
 @socketio.on('my_event', namespace='/test')
 def test_message(message):
@@ -138,4 +139,4 @@ if __name__ == '__main__':
 	process0.start()
 	# process0.join()
 	# socketio.run(app, host="192.168.199.14", port=80) #, debug=True)
-	socketio.run(app, host="192.168.2.123", port=80) #, debug=True)
+	socketio.run(app, host="192.168.2.189", port=80) #, debug=True)
