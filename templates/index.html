@@ -53,7 +53,7 @@
 
             
             var chart_data = [];
-			var main_data = [[],[]];
+			var main_data = [[],[],[]];
             var options = {
                 chart: {
                     renderTo: 'container',
@@ -61,8 +61,8 @@
 					animation: false,
                     events: {
                         load: function () {
-							for (i = 0; i < 2; i++) {
-								for (j = 0; j < 7; j++) {	
+							for (i = 0; i < 3; i++) {
+								for (j = 0; j < 7; j++) {
                             		main_data[i][j] = this.series[j+i*7];
 								}
 							}
@@ -70,8 +70,8 @@
                                 var x = (new Date()).getTime()
                                 // console.log(x, new Date())
                                 if ($.isNumeric(msg.data[0][0])) {
-									for (i = 0; i < 2; i++) {
-                                		for (j = 0; j < 7; j++) {   
+									for (i = 0; i < 3; i++) {
+                                		for (j = 0; j < 7; j++) {
                                     		main_data[i][j].addPoint([x, msg.data[i][j]], true, false);
                                 		}
                             		}
@@ -91,6 +91,7 @@
                         { count: 1, type: 'minute', text: '1m' }, 
                         { count: 5, type: 'minute', text: '5m' },
 						{ count: 15, type: 'minute', text: '15m' }, 
+						{ count: 30, type: 'minute', text: '30m' },
                         { type: 'all', text: 'All' }],
                     inputEnabled: false,
                     selected: 0
@@ -111,7 +112,7 @@
                         }
                     },
                     title: {
-                        text: 'Date'
+                        text: 'Time'
                     }
                 },
                 yAxis: [
@@ -120,20 +121,28 @@
 				],
                 series: [
 					{ name: 'Cham0 temp0 mean', data: []},
-					{ name: 'Cham0 temp0', data: [], visible: false},
-					{ name: 'Cham0 temp1', data: [], visible: false},
+					{ name: 'Cham0 temp00', data: [], visible: false},
+					{ name: 'Cham0 temp01', data: [], visible: false},
 					{ name: 'Cham0 ambient temp', data: [], visible: false},
 					{ name: 'Cham0 target temp', data: [], dashStyle: 'longdash', visible: false},
                     { name: 'Cham0 temp error', data: [], visible: false},
 					{ name: 'Cham0 DAC value', yAxis: 1, data: [], visible: false},
 
                     { name: 'Cham1 temp1 mean', data: []},
-                    { name: 'Cham1 temp0', data: [], visible: false},
-                    { name: 'Cham1 temp1', data: [], visible: false},
+                    { name: 'Cham1 temp10', data: [], visible: false},
+                    { name: 'Cham1 temp11', data: [], visible: false},
                     { name: 'Cham1 ambient temp', data: [], visible: false},
                     { name: 'Cham1 target temp', data: [], dashStyle: 'longdash', visible: false},
                     { name: 'Cham1 temp error', data: [], visible: false},
-                    { name: 'Cham1 DAC value', yAxis: 1, data: [], visible: false}
+                    { name: 'Cham1 DAC value', yAxis: 1, data: [], visible: false},
+
+                    { name: 'Cham2 temp2 mean', data: []},
+                    { name: 'Cham2 temp20', data: [], visible: false},
+                    { name: 'Cham2 temp21', data: [], visible: false},
+                    { name: 'Cham2 ambient temp', data: [], visible: false},
+                    { name: 'Cham2 target temp', data: [], dashStyle: 'longdash', visible: false},
+                    { name: 'Cham2 temp error', data: [], visible: false},
+                    { name: 'Cham2 DAC value', yAxis: 1, data: [], visible: false}
 
 				]
             };
@@ -213,6 +222,17 @@
                     <td><input type="checkbox" name="11" class="checkbox">target temp </td>
                     <td><input type="checkbox" name="12" class="checkbox">temp error</td>
                     <td><input type="checkbox" name="13" class="checkbox">DAC value </td>
+				</tr>
+                <tr>
+                    <td>Chamber2</td>
+                    <td><input type="checkbox" name="14" class="checkbox" checked>temp2 mean </td>
+                    <td><input type="checkbox" name="15" class="checkbox">temp20 </td>
+                    <td><input type="checkbox" name="16" class="checkbox">temp21 </td>
+                    <td><input type="checkbox" name="17" class="checkbox">ambient temp </td>
+                    <td><input type="checkbox" name="18" class="checkbox">target temp </td>
+                    <td><input type="checkbox" name="19" class="checkbox">temp error</td>
+                    <td><input type="checkbox" name="20" class="checkbox">DAC value </td>
+                </tr>
 				</th>
 		</tbody>
 	</table> 
@@ -233,23 +253,7 @@
 	<p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
     <br>
 
-	<!--<input type="text" name="csv_file" id="csv_file" placeholder="csv_file">
-	<input type="button" id="add_chart" value="add chart"/>-->
-
-	<!--
-    <div id="csv-table-wrapper">
-        <div id="csv-table-scroll">
-            <table id="csv-table">
-                <tbody id="csv-table-tbody">
-                    <tr><th id="th-csv-table">Load file</th></tr>
-                    {% for n in list_of_csv %}
-                    <tr class="csv-row"><td>{{n}}</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-	
+	<!--	
 	<h2>Received:</h2>
     <div id="log"></div>
 	-->

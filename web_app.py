@@ -19,7 +19,7 @@ app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, async_mode=async_mode)
 thread = None
 
-n, m = 2, 7
+n, m = 3, 7
 mp_arr = Array(c.c_double, n*m)
 arr = np.frombuffer(mp_arr.get_obj())
 main_data = arr.reshape((n,m))
@@ -29,13 +29,14 @@ main_data = arr.reshape((n,m))
 # TCA9548A_reset_pin = 7
 # GPIO.setup(TCA9548A_reset_pin, GPIO.OUT)
 
-i2c_bus_list = [smbus.SMBus(4), smbus.SMBus(5)] # , smbus.SMBus(5)
+i2c_bus_list = [smbus.SMBus(3), smbus.SMBus(4), smbus.SMBus(5)]
 temp_addrs = [0x48, 0x49, 0x4A] # , 0x4B]
 
 # set 16-bit mode in all ADT7420
 for bus in i2c_bus_list:
 	for addr in temp_addrs:
-		bus.write_byte_data(addr, 0x03, 0x80)
+		try: bus.write_byte_data(addr, 0x03, 0x80)
+		except: pass
 
 dac_spi = spidev.SpiDev(0, 1)
 dac_spi.mode = 2
@@ -56,7 +57,8 @@ def read_all_temp():
 	for k in xrange(12):
 		for i in xrange(len(i2c_bus_list)):
 			for j in xrange(len(temp_addrs)):
-				T_raw = i2c_bus_list[i].read_i2c_block_data(temp_addrs[j], 0, 2)
+				try: T_raw = i2c_bus_list[i].read_i2c_block_data(temp_addrs[j], 0, 2)
+				except: T_raw=[3,100] # print 'device at', str(hex(temp_addrs[j])), 'address on', 'i2c-'+str(i)+' bus not responding' 
 				Ts[i,j+1] += ((T_raw[0]<<8) + T_raw[1])/1536.0
 			Ts[i,0] = (Ts[i,1] + Ts[i,2])/2.0
 		socketio.sleep(0.25)
