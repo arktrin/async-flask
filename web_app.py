@@ -19,7 +19,7 @@ app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, async_mode=async_mode)
 thread = None
 
-n, m = 3, 7
+n, m = 4, 7
 mp_arr = Array(c.c_double, n*m)
 arr = np.frombuffer(mp_arr.get_obj())
 main_data = arr.reshape((n,m))
@@ -29,7 +29,7 @@ main_data = arr.reshape((n,m))
 # TCA9548A_reset_pin = 7
 # GPIO.setup(TCA9548A_reset_pin, GPIO.OUT)
 
-i2c_bus_list = [smbus.SMBus(3), smbus.SMBus(4), smbus.SMBus(5)]
+i2c_bus_list = [smbus.SMBus(3), smbus.SMBus(4), smbus.SMBus(5), smbus.SMBus(6)]
 temp_addrs = [0x48, 0x49, 0x4A] # , 0x4B]
 
 # set 16-bit mode in all ADT7420
@@ -41,12 +41,12 @@ for bus in i2c_bus_list:
 dac_spi = spidev.SpiDev(0, 1)
 dac_spi.mode = 2
 GPIO.setmode(GPIO.BOARD)
-DAC_nCS = [29, 31, 32] #, 33
+DAC_nCS = [29, 31, 32, 33]
 for nCS in DAC_nCS:
 	GPIO.setup(nCS, GPIO.OUT)
 i = 0
-default_stab_temps = [32.0, 32.0, 32.0]
-default_dac_vals = [14000, 12000, 12000]
+default_stab_temps = [30.0, 30.0, 30.0, 30.0]
+default_dac_vals = [14000, 12000, 12000, 12000]
 
 for i in xrange(n):
 	main_data[i,4] = default_stab_temps[i] 
@@ -91,6 +91,10 @@ def data_logger(main_data):
 					main_data[j,6] += 1 + int(round(100*main_data[j,5], 0))
 				elif main_data[j,5] < 0:
 					main_data[j,6] -= 1 - int(round(100*main_data[j,5], 0))
+				if main_data[j,6] > 65535:
+					main_data[j,6] = 65535
+				elif main_data[j,6] < 0:
+					main_data[j,6] = 0
 				write_dac(main_data[j,6], DAC_nCS[j])
 		# print main_data, '\n'	
 		i += 1
@@ -140,5 +144,6 @@ if __name__ == '__main__':
 	process0 = Process( target=data_logger, args=(main_data,) )
 	process0.start()
 	# process0.join()
-	# socketio.run(app, host="192.168.199.14", port=80) #, debug=True)
-	socketio.run(app, host="192.168.2.189", port=80) #, debug=True)
+	socketio.run(app, host="192.168.2.190", port=80) #, debug=True)
+	socketio.run(app, port=80) #, debug=True)
+
